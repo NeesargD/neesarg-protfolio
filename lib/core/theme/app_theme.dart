@@ -3,31 +3,34 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 import 'app_text_styles.dart';
 
-/// Builds the global [ThemeData] for the portfolio.
+/// Builds the global [ThemeData] for the portfolio from an [AppPalette].
 class AppTheme {
   AppTheme._();
 
-  static ThemeData build() {
-    final base = ThemeData.dark(useMaterial3: true);
+  static ThemeData build(AppPalette p, bool isDark) {
+    final base = ThemeData(
+      useMaterial3: true,
+      brightness: isDark ? Brightness.dark : Brightness.light,
+    );
     return base.copyWith(
-      scaffoldBackgroundColor: AppColors.background,
+      scaffoldBackgroundColor: p.background,
       colorScheme: base.colorScheme.copyWith(
-        surface: AppColors.background,
-        primary: AppColors.accent,
-        secondary: AppColors.accentSoft,
-        onSurface: AppColors.ink,
+        surface: p.background,
+        primary: p.accent,
+        secondary: p.accentSoft,
+        onSurface: p.ink,
       ),
       textTheme: base.textTheme.apply(
-        bodyColor: AppColors.ink,
-        displayColor: AppColors.ink,
+        bodyColor: p.ink,
+        displayColor: p.ink,
       ),
-      textSelectionTheme: const TextSelectionThemeData(
-        selectionColor: AppColors.accent,
-        cursorColor: AppColors.accent,
+      textSelectionTheme: TextSelectionThemeData(
+        selectionColor: p.accent,
+        cursorColor: p.accent,
       ),
       tooltipTheme: TooltipThemeData(
-        decoration: const BoxDecoration(color: AppColors.surface),
-        textStyle: AppText.mono(color: AppColors.ink, size: 12),
+        decoration: BoxDecoration(color: p.surface),
+        textStyle: AppText.mono(color: p.ink, size: 12),
       ),
     );
   }

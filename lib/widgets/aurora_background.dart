@@ -11,6 +11,7 @@ class AuroraBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     return IgnorePointer(
       child: RepaintBoundary(
         child: Stack(

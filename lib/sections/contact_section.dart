@@ -24,6 +24,7 @@ class ContactSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     final c = ResumeData.contact;
     final isMobile = Responsive.isMobile(context);
     final hugeSize = Responsive.value(
@@ -71,7 +72,7 @@ class ContactSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 72),
-          const Divider(color: AppColors.line, height: 1),
+          Divider(color: AppColors.line, height: 1),
           const SizedBox(height: 28),
           _FooterBar(education: ResumeData.education, isMobile: isMobile),
         ],
@@ -94,6 +95,7 @@ class _EmailPillState extends State<_EmailPill> {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
@@ -163,6 +165,7 @@ class _ContactMeta extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     final columns = <Widget>[
       _MetaColumn(
         label: 'EMAIL',
@@ -225,6 +228,7 @@ class _MetaColumnState extends State<_MetaColumn> {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     final interactive = widget.onTap != null;
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -269,6 +273,7 @@ class _FooterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     final edu = Text(
       education,
       style: AppText.mono(size: 11, color: AppColors.faint),

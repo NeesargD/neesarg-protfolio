@@ -70,6 +70,7 @@ class _IntroLoaderState extends State<IntroLoader>
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     final gutter = Responsive.gutter(context);
     final counterSize = Responsive.value(
       context,
@@ -152,6 +153,7 @@ class _ProgressLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     final width = Responsive.value(
       context,
       mobile: 180.0,

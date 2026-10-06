@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -9,6 +10,52 @@ import '../widgets/aurora_background.dart';
 import '../widgets/cursor/parallax.dart';
 import '../widgets/marquee.dart';
 import '../widgets/rising_text.dart';
+import '../widgets/wireframe_phone.dart';
+
+/// A fixed hero the "camera" flies into: as the page scrolls through its first
+/// viewport, the whole hero scales up toward the wireframe phone and fades,
+/// revealing the next section beneath. Decorative, so it ignores pointers and
+/// lets scroll pass through to the list underneath.
+class HeroZoomOverlay extends StatelessWidget {
+  const HeroZoomOverlay({
+    super.key,
+    required this.scroll,
+    required this.viewportH,
+    required this.play,
+  });
+
+  final ValueListenable<double> scroll;
+  final double viewportH;
+  final bool play;
+
+  @override
+  Widget build(BuildContext context) {
+    context.watchTheme();
+    return IgnorePointer(
+      child: ValueListenableBuilder<double>(
+        valueListenable: scroll,
+        builder: (context, offset, _) {
+          final p = (offset / viewportH).clamp(0.0, 1.0);
+          // Fully gone — don't build the hero (frees its tickers).
+          if (p >= 1.0) return const SizedBox.shrink();
+          // Ease-in so the fly-in accelerates (feels like diving into it).
+          final e = p * p;
+          final scale = 1 + e * 6.5;
+          // Hold, then dissolve over the last ~40% to reveal the content.
+          final fade = (1 - ((p - 0.6) / 0.4)).clamp(0.0, 1.0);
+          return Opacity(
+            opacity: fade,
+            child: Transform.scale(
+              scale: scale,
+              alignment: Alignment.center,
+              child: HeroSection(play: play),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
 
 /// Full-viewport opening: oversized editorial name + intro, an animated glow
 /// backdrop and a skills marquee anchored to the bottom.
@@ -20,6 +67,7 @@ class HeroSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     final size = MediaQuery.sizeOf(context);
     final gutter = Responsive.gutter(context);
     final isMobile = Responsive.isMobile(context);
@@ -28,12 +76,22 @@ class HeroSection extends StatelessWidget {
     final displaySize =
         (size.width * (isMobile ? 0.18 : 0.14)).clamp(44.0, 200.0);
 
+    // Centred phone is the focal point the camera flies into on scroll.
+    final objSize = isMobile ? size.width * 1.02 : size.height * 0.98;
+
     return SizedBox(
       height: size.height,
       child: Stack(
         children: [
           const Positioned.fill(
             child: Parallax(strength: 46, child: AuroraBackground()),
+          ),
+          Positioned(
+            left: (size.width - objSize) / 2,
+            top: (size.height - objSize) / 2,
+            width: objSize,
+            height: objSize,
+            child: const Parallax(strength: 20, child: WireframePhone()),
           ),
           Positioned.fill(
             child: Padding(
@@ -86,6 +144,7 @@ class _Eyebrow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     return FittedBox(
       fit: BoxFit.scaleDown,
       alignment: Alignment.centerLeft,
@@ -126,6 +185,7 @@ class _PulseDotState extends State<_PulseDot>
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     return AnimatedBuilder(
       animation: _c,
       builder: (context, _) {
@@ -150,7 +210,7 @@ class _PulseDotState extends State<_PulseDot>
               Container(
                 width: 6,
                 height: 6,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: AppColors.accent,
                   shape: BoxShape.circle,
                 ),
@@ -170,6 +230,7 @@ class _IntroRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     final intro = Text(
       ResumeData.intro,
       style: AppText.sans(
@@ -184,8 +245,7 @@ class _IntroRow extends StatelessWidget {
       children: [
         Text('SCROLL', style: AppText.mono(size: 11)),
         const SizedBox(width: 10),
-        const Icon(Icons.arrow_downward,
-            size: 16, color: AppColors.accent),
+        Icon(Icons.arrow_downward, size: 16, color: AppColors.accent),
       ],
     );
 
@@ -220,9 +280,10 @@ class _BottomMarquee extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     return Column(
       children: [
-        const Divider(color: AppColors.line, height: 1),
+        Divider(color: AppColors.line, height: 1),
         const SizedBox(height: 18),
         Marquee(
           velocity: 40,
@@ -245,7 +306,7 @@ class _BottomMarquee extends StatelessWidget {
                   Container(
                     width: 6,
                     height: 6,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: AppColors.accent,
                       shape: BoxShape.circle,
                     ),

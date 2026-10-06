@@ -18,6 +18,7 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     return Reveal(
       offset: 24,
       child: Row(
@@ -26,7 +27,7 @@ class SectionHeader extends StatelessWidget {
             width: 8,
             height: 8,
             margin: const EdgeInsets.only(right: 14),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: AppColors.accent,
               shape: BoxShape.circle,
             ),
@@ -37,7 +38,7 @@ class SectionHeader extends StatelessWidget {
             style: AppText.mono(color: AppColors.muted),
           ),
           const SizedBox(width: 20),
-          const Expanded(child: Divider(color: AppColors.line, height: 1)),
+          Expanded(child: Divider(color: AppColors.line, height: 1)),
         ],
       ),
     );

@@ -28,6 +28,7 @@ class NavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     final isMobile = Responsive.isMobile(context);
     final gutter = Responsive.gutter(context);
 
@@ -75,11 +76,20 @@ class NavBar extends StatelessWidget {
                         _NavLink(entry: e),
                         const SizedBox(width: 30),
                       ],
+                      const _ThemeToggle(),
+                      const SizedBox(width: 16),
                       _StatusPill(),
                     ],
                   )
                 else
-                  _StatusPill(),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const _ThemeToggle(),
+                      const SizedBox(width: 12),
+                      _StatusPill(),
+                    ],
+                  ),
               ],
             ),
           ),
@@ -95,6 +105,7 @@ class _Brand extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     return CursorRegion(
       label: 'top',
       onTap: onTap,
@@ -103,7 +114,7 @@ class _Brand extends StatelessWidget {
           Container(
             width: 9,
             height: 9,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: AppColors.accent,
               shape: BoxShape.circle,
             ),
@@ -127,6 +138,7 @@ class _Brand extends StatelessWidget {
 class _StatusPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
@@ -146,6 +158,44 @@ class _StatusPill extends StatelessWidget {
   }
 }
 
+/// Light/dark toggle — a round button whose icon rotates/crossfades between a
+/// moon (dark) and a sun (light).
+class _ThemeToggle extends StatelessWidget {
+  const _ThemeToggle();
+
+  @override
+  Widget build(BuildContext context) {
+    context.watchTheme();
+    final isDark = context.isDarkTheme;
+    return CursorRegion(
+      label: isDark ? 'light' : 'dark',
+      onTap: context.toggleTheme,
+      child: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.lineStrong),
+        ),
+        child: AnimatedSwitcher(
+          duration: AppMotion.medium,
+          switchInCurve: AppMotion.expo,
+          transitionBuilder: (child, anim) => RotationTransition(
+            turns: Tween(begin: 0.6, end: 1.0).animate(anim),
+            child: FadeTransition(opacity: anim, child: child),
+          ),
+          child: Icon(
+            isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+            key: ValueKey(isDark),
+            size: 17,
+            color: AppColors.ink,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _NavLink extends StatefulWidget {
   const _NavLink({required this.entry});
   final NavEntry entry;
@@ -159,6 +209,7 @@ class _NavLinkState extends State<_NavLink> {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     return CursorRegion(
       onTap: widget.entry.onTap,
       child: MouseRegion(

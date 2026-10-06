@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
+import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
 import 'screens/home_screen.dart';
 
@@ -13,17 +14,35 @@ void main() {
   runApp(const PortfolioApp());
 }
 
-class PortfolioApp extends StatelessWidget {
+class PortfolioApp extends StatefulWidget {
   const PortfolioApp({super.key});
 
   @override
+  State<PortfolioApp> createState() => _PortfolioAppState();
+}
+
+class _PortfolioAppState extends State<PortfolioApp> {
+  bool _dark = true;
+
+  void _toggle() => setState(() => _dark = !_dark);
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Neesarg Darji — Senior Flutter Developer',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.build(),
-      scrollBehavior: const _SmoothScrollBehavior(),
-      home: const HomeScreen(),
+    final palette = _dark ? kDarkPalette : kLightPalette;
+    // Keep the static mirror in sync for painters / text-style helpers.
+    AppColors.current = palette;
+
+    return PaletteProvider(
+      palette: palette,
+      isDark: _dark,
+      toggle: _toggle,
+      child: MaterialApp(
+        title: 'Neesarg Darji — Senior Flutter Developer',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.build(palette, _dark),
+        scrollBehavior: const _SmoothScrollBehavior(),
+        home: const HomeScreen(),
+      ),
     );
   }
 }

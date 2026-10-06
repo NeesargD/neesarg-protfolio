@@ -14,6 +14,7 @@ class ExperienceSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     return SectionShell(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,6 +65,7 @@ class _ExperienceRowState extends State<_ExperienceRow> {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     final isMobile = Responsive.isMobile(context);
     final titleSize = Responsive.value(
       context,
@@ -86,7 +88,7 @@ class _ExperienceRowState extends State<_ExperienceRow> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           decoration: BoxDecoration(
-            border: const Border(top: BorderSide(color: AppColors.line)),
+            border: Border(top: BorderSide(color: AppColors.line)),
             color: _open
                 ? AppColors.ink.withValues(alpha: 0.02)
                 : Colors.transparent,
@@ -204,7 +206,7 @@ class _ExperienceRowState extends State<_ExperienceRow> {
                           margin: const EdgeInsets.only(top: 9, right: 14),
                           width: 6,
                           height: 6,
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             color: AppColors.accent,
                             shape: BoxShape.circle,
                           ),
@@ -238,6 +240,7 @@ class _Tag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     if (Responsive.isMobile(context)) return const SizedBox.shrink();
     return AnimatedContainer(
       duration: const Duration(milliseconds: 260),

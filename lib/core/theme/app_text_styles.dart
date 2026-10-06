@@ -17,7 +17,7 @@ class AppText {
     FontWeight weight = FontWeight.w600,
     double height = 0.95,
     double letterSpacing = -2,
-    Color color = AppColors.ink,
+    Color? color,
     FontStyle style = FontStyle.normal,
   }) {
     return GoogleFonts.fraunces(
@@ -25,7 +25,7 @@ class AppText {
       fontWeight: weight,
       height: height,
       letterSpacing: letterSpacing,
-      color: color,
+      color: color ?? AppColors.ink,
       fontStyle: style,
     );
   }
@@ -35,14 +35,14 @@ class AppText {
     FontWeight weight = FontWeight.w400,
     double height = 1.5,
     double letterSpacing = 0,
-    Color color = AppColors.ink,
+    Color? color,
   }) {
     return GoogleFonts.spaceGrotesk(
       fontSize: size,
       fontWeight: weight,
       height: height,
       letterSpacing: letterSpacing,
-      color: color,
+      color: color ?? AppColors.ink,
     );
   }
 
@@ -50,13 +50,13 @@ class AppText {
     double size = 13,
     FontWeight weight = FontWeight.w500,
     double letterSpacing = 1.5,
-    Color color = AppColors.muted,
+    Color? color,
   }) {
     return GoogleFonts.jetBrainsMono(
       fontSize: size,
       fontWeight: weight,
       letterSpacing: letterSpacing,
-      color: color,
+      color: color ?? AppColors.muted,
     );
   }
 }

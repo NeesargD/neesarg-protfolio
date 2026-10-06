@@ -69,6 +69,7 @@ flutter:
   # Work-gallery screenshots. Drop files into assets/work/ (see its README).
   assets:
     - assets/work/
+    - assets/me.jpg
 
   # To add assets to your application, add an assets section, like this:
   # assets:

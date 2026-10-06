@@ -21,6 +21,7 @@ class WorkSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     final isMobile = Responsive.isMobile(context);
     final gutter = Responsive.gutter(context);
     final vPad = Responsive.value<double>(
@@ -98,7 +99,7 @@ class _WorkCarousel extends StatefulWidget {
 }
 
 class _WorkCarouselState extends State<_WorkCarousel> {
-  static const _autoAdvance = Duration(seconds: 5);
+  static const _autoAdvance = Duration(seconds: 9);
 
   late PageController _controller;
   Timer? _timer;
@@ -194,10 +195,12 @@ class _WorkCarouselState extends State<_WorkCarousel> {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     final isMobile = Responsive.isMobile(context);
-    final cardW = isMobile ? 172.0 : 232.0;
-    final cardH = cardW * 1.94;
-    final carouselH = cardH + 40;
+    final cardW = isMobile ? 228.0 : 304.0;
+    final shotH = (cardW * 0.58) * 1.95;
+    final cardH = shotH + 80;
+    final carouselH = cardH + 28;
 
     return VisibilityDetector(
       key: const ValueKey('work-carousel'),
@@ -269,9 +272,10 @@ class _WorkCarouselState extends State<_WorkCarousel> {
   }
 }
 
-/// The screenshot card (used inside the coverflow). When [play] is true (it's
-/// the focused, on-screen card) it auto-cycles through the app's screenshots
-/// with a crossfade; otherwise it shows the first shot statically (cheap).
+/// The app card inside the coverflow: a fanned deck of the app's 2-3
+/// screenshots, all visible at once. When [play] is true (focused) the deck
+/// fans OUT and the screens continuously rotate through the front position;
+/// otherwise it collapses to a tight, static stack. Paint-only transforms.
 class _Card extends StatefulWidget {
   const _Card({
     required this.project,
@@ -292,11 +296,11 @@ class _Card extends StatefulWidget {
 }
 
 class _CardState extends State<_Card> {
-  static const _dwell = Duration(milliseconds: 2400);
-  Timer? _cycle;
-  int _i = 0;
+  static const _spin = Duration(milliseconds: 2600);
+  Timer? _timer;
+  int _rot = 0;
 
-  List<String> get _shots => widget.project.shots;
+  int get _n => widget.project.shots.length.clamp(1, 3);
 
   @override
   void initState() {
@@ -315,30 +319,110 @@ class _CardState extends State<_Card> {
   }
 
   void _start() {
-    _cycle?.cancel();
-    if (_shots.length < 2) return;
-    _cycle = Timer.periodic(_dwell, (_) {
-      if (!mounted) return;
-      setState(() => _i = (_i + 1) % _shots.length);
+    _timer?.cancel();
+    if (_n < 2) return;
+    _timer = Timer.periodic(_spin, (_) {
+      if (mounted) setState(() => _rot++);
     });
   }
 
   void _stop() {
-    _cycle?.cancel();
-    _cycle = null;
-    if (_i != 0) setState(() => _i = 0);
+    _timer?.cancel();
+    _timer = null;
+    if (_rot != 0) setState(() => _rot = 0);
   }
 
   @override
   void dispose() {
-    _cycle?.cancel();
+    _timer?.cancel();
     super.dispose();
+  }
+
+  // Per-slot placement. Slot 0 = front, 1 = right-back, 2 = left-back.
+  ({double dx, double rot, double scale, int z}) _slot(int slot) {
+    final spread = widget.play ? widget.width * 0.235 : widget.width * 0.085;
+    final angle = widget.play ? 0.13 : 0.05;
+    switch (slot) {
+      case 0:
+        return (dx: 0, rot: 0, scale: 1.0, z: 2);
+      case 1:
+        return (dx: spread, rot: angle, scale: 0.9, z: 1);
+      default:
+        return (dx: -spread, rot: -angle, scale: 0.9, z: 0);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    const radius = 30.0;
-    final showDots = widget.play && _shots.length > 1;
+    context.watchTheme();
+    final shots = widget.project.shots;
+    final n = _n;
+    final shotW = widget.width * 0.58;
+    final shotH = shotW * 1.95;
+
+    // Each image keeps a stable key and animates toward its current slot.
+    final entries = <({int z, Widget w})>[];
+    for (var i = 0; i < n; i++) {
+      final slot = (i + _rot) % n;
+      final s = _slot(slot);
+      entries.add((
+        z: s.z,
+        w: AnimatedContainer(
+          key: ValueKey('shot-$i'),
+          duration: const Duration(milliseconds: 620),
+          curve: AppMotion.expo,
+          width: shotW,
+          height: shotH,
+          transform: Matrix4.identity()
+            ..translateByDouble(s.dx, 0, 0, 1)
+            ..rotateZ(s.rot)
+            ..scaleByDouble(s.scale, s.scale, 1, 1),
+          transformAlignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: AppColors.lineStrong),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.5),
+                blurRadius: 44,
+                spreadRadius: -10,
+                offset: const Offset(0, 24),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(22),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.asset(
+                  shots[i],
+                  fit: BoxFit.cover,
+                  alignment: Alignment.topCenter,
+                  cacheWidth: (shotW * 2).round(),
+                  errorBuilder: (_, _, _) =>
+                      _ShotPlaceholder(label: widget.project.name),
+                ),
+                AnimatedOpacity(
+                  opacity: slot == 0 ? 1 : 0,
+                  duration: AppMotion.fast,
+                  child: Align(
+                    alignment: Alignment.bottomLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: _IconBadge(asset: widget.project.icon),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ));
+    }
+
+    // Paint back-to-front (front slot last / on top).
+    entries.sort((a, b) => a.z.compareTo(b.z));
 
     return CursorRegion(
       label: 'view',
@@ -346,68 +430,10 @@ class _CardState extends State<_Card> {
       child: SizedBox(
         width: widget.width,
         height: widget.height,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(radius),
-            border: Border.all(color: AppColors.lineStrong),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.55),
-                blurRadius: 70,
-                spreadRadius: -14,
-                offset: const Offset(0, 36),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(radius),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 650),
-                  switchInCurve: AppMotion.expo,
-                  child: Image.asset(
-                    _shots[_i.clamp(0, _shots.length - 1)],
-                    key: ValueKey(_i),
-                    fit: BoxFit.cover,
-                    alignment: Alignment.topCenter,
-                    cacheWidth: (widget.width * 2).round(),
-                    errorBuilder: (_, _, _) =>
-                        _ShotPlaceholder(label: widget.project.name),
-                  ),
-                ),
-                Positioned(
-                  left: 16,
-                  bottom: 16,
-                  child: _IconBadge(asset: widget.project.icon),
-                ),
-                if (showDots)
-                  Positioned(
-                    right: 14,
-                    bottom: 22,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        for (var d = 0; d < _shots.length; d++)
-                          AnimatedContainer(
-                            duration: AppMotion.fast,
-                            margin: const EdgeInsets.only(left: 5),
-                            width: d == _i ? 16 : 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              color: d == _i
-                                  ? AppColors.accent
-                                  : Colors.white.withValues(alpha: 0.5),
-                              borderRadius: BorderRadius.circular(3),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-          ),
+        child: Stack(
+          alignment: Alignment.center,
+          clipBehavior: Clip.none,
+          children: [for (final e in entries) e.w],
         ),
       ),
     );
@@ -436,6 +462,7 @@ class _Details extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     final gutter = Responsive.gutter(context);
 
     final text = Column(
@@ -535,6 +562,7 @@ class _Controls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     final progress = (index + 1) / total;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -595,6 +623,7 @@ class _ArrowButtonState extends State<_ArrowButton> {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     return CursorRegion(
       onTap: widget.onTap,
       child: MouseRegion(
@@ -636,6 +665,7 @@ class _AppStoreButtonState extends State<_AppStoreButton> {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     return CursorRegion(
       label: 'open',
       onTap: widget.onTap,
@@ -680,6 +710,7 @@ class _IconBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     return Container(
       width: 52,
       height: 52,
@@ -700,7 +731,7 @@ class _IconBadge extends StatelessWidget {
           asset,
           fit: BoxFit.cover,
           cacheWidth: 120,
-          errorBuilder: (_, _, _) => const ColoredBox(color: AppColors.surface),
+          errorBuilder: (_, _, _) => ColoredBox(color: AppColors.surface),
         ),
       ),
     );
@@ -713,6 +744,7 @@ class _TagPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(
@@ -733,12 +765,13 @@ class _ShotPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     return DecoratedBox(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFF17150F), AppColors.background],
+          colors: [const Color(0xFF17150F), AppColors.background],
         ),
       ),
       child: Center(

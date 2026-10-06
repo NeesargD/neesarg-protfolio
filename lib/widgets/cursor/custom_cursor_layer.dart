@@ -68,6 +68,7 @@ class _CustomCursorLayerState extends State<CustomCursorLayer>
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     return IgnorePointer(
       child: ValueListenableBuilder<bool>(
         valueListenable: widget.controller.visible,
@@ -115,6 +116,7 @@ class _CursorShape extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     final hasLabel = label != null && label!.isNotEmpty;
 
     late final double width;
@@ -175,8 +177,9 @@ class _Dot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.accent,
         shape: BoxShape.circle,
       ),
@@ -187,6 +190,7 @@ class _Dot extends StatelessWidget {
 class _Ring extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     return Container(
       decoration: BoxDecoration(
         color: AppColors.accent.withValues(alpha: 0.12),
@@ -204,8 +208,9 @@ class _LabelBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.accent,
         shape: BoxShape.circle,
       ),

@@ -32,6 +32,9 @@ class _HomeScreenState extends State<HomeScreen> {
   final _contactKey = GlobalKey();
   final _topKey = GlobalKey();
 
+  /// Live scroll offset — drives the hero zoom transition.
+  final ValueNotifier<double> _scroll = ValueNotifier(0);
+
   bool _scrolled = false;
   bool _heroPlay = false;
   bool _showLoader = true;
@@ -43,6 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onScroll() {
+    _scroll.value = _scrollController.offset;
     final scrolled = _scrollController.offset > 40;
     if (scrolled != _scrolled) setState(() => _scrolled = scrolled);
   }
@@ -61,6 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _scroll.dispose();
     _cursor.dispose();
     super.dispose();
   }
@@ -80,6 +85,8 @@ class _HomeScreenState extends State<HomeScreen> {
       NavEntry('Contact', () => _scrollTo(_contactKey)),
     ];
 
+    final viewportH = MediaQuery.sizeOf(context).height;
+
     Widget page = Stack(
       children: [
         Positioned.fill(
@@ -88,8 +95,9 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SizedBox(key: _topKey, height: 0),
-                HeroSection(play: heroPlay),
+                // Zoom budget: one viewport of scroll drives the hero zoom.
+                // The real hero is a fixed overlay (below), not in the flow.
+                SizedBox(key: _topKey, height: viewportH),
                 KeyedSubtree(key: _aboutKey, child: const AboutSection()),
                 KeyedSubtree(key: _skillsKey, child: const SkillsSection()),
                 KeyedSubtree(key: _workKey, child: const WorkSection()),
@@ -97,6 +105,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 KeyedSubtree(key: _contactKey, child: const ContactSection()),
               ],
             ),
+          ),
+        ),
+        // Fixed hero that the "camera" flies into as you scroll the first
+        // viewport. IgnorePointer so scroll passes through to the list.
+        Positioned.fill(
+          child: HeroZoomOverlay(
+            scroll: _scroll,
+            viewportH: viewportH,
+            play: heroPlay,
           ),
         ),
         const Positioned.fill(child: GrainOverlay()),

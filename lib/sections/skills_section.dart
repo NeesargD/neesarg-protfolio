@@ -14,6 +14,7 @@ class SkillsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     return SectionShell(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,6 +56,7 @@ class _SkillGroupRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     final isMobile = Responsive.isMobile(context);
 
     final title = Text(
@@ -76,9 +78,9 @@ class _SkillGroupRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 32),
       decoration: BoxDecoration(
         border: Border(
-          top: const BorderSide(color: AppColors.line),
+          top: BorderSide(color: AppColors.line),
           bottom: isLast
-              ? const BorderSide(color: AppColors.line)
+              ? BorderSide(color: AppColors.line)
               : BorderSide.none,
         ),
       ),
@@ -111,6 +113,7 @@ class _SkillChipState extends State<_SkillChip> {
 
   @override
   Widget build(BuildContext context) {
+    context.watchTheme();
     return CursorRegion(
       child: MouseRegion(
         onEnter: (_) => setState(() => _hover = true),
