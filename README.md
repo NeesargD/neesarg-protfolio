@@ -1,6 +1,6 @@
 # Neesarg Darji — Portfolio
 
-An editorial-dark, motion-rich personal résumé site built in **Flutter Web**.
+An editorial-dark, motion-rich personal resume site built in **Flutter Web**.
 Inspired by sites like laurarountree.net and andrevv.com — big serif
 typography, a floating glass nav, a custom trailing cursor, film grain, and
 scroll-driven reveals.

@@ -1,4 +1,4 @@
-/// Static content for the portfolio, sourced from Neesarg's résumé.
+/// Static content for the portfolio, sourced from Neesarg's resume.
 ///
 /// Kept in one place so copy edits never require touching layout code.
 library;
@@ -402,5 +402,8 @@ class ResumeData {
   static const String companyRole = 'Senior Flutter Developer · 2021 — Present';
   static const String education =
       'B.E. Computer Engineering — SAL Institute of Technology & Engineering '
-      'Research, Ahmedabad · CGPA 8.28 · 2021';
+      'Research, Ahmedabad · 2021';
+
+  /// Resume PDF (served from web/resume.pdf).
+  static const String resumeFile = 'resume.pdf';
 }

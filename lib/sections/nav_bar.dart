@@ -20,11 +20,13 @@ class NavBar extends StatelessWidget {
     required this.scrolled,
     required this.entries,
     required this.onLogoTap,
+    required this.onResume,
   });
 
   final bool scrolled;
   final List<NavEntry> entries;
   final VoidCallback onLogoTap;
+  final VoidCallback onResume;
 
   @override
   Widget build(BuildContext context) {
@@ -76,6 +78,8 @@ class NavBar extends StatelessWidget {
                         _NavLink(entry: e),
                         const SizedBox(width: 30),
                       ],
+                      _ResumePill(onTap: onResume),
+                      const SizedBox(width: 14),
                       const _ThemeToggle(),
                       const SizedBox(width: 16),
                       _StatusPill(),
@@ -85,9 +89,9 @@ class NavBar extends StatelessWidget {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const _ThemeToggle(),
+                      _ResumePill(onTap: onResume),
                       const SizedBox(width: 12),
-                      _StatusPill(),
+                      const _ThemeToggle(),
                     ],
                   ),
               ],
@@ -152,6 +156,61 @@ class _StatusPill extends StatelessWidget {
           size: 10,
           color: AppColors.accent,
           weight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+/// Opens the resume PDF in a new tab.
+class _ResumePill extends StatefulWidget {
+  const _ResumePill({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  State<_ResumePill> createState() => _ResumePillState();
+}
+
+class _ResumePillState extends State<_ResumePill> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    context.watchTheme();
+    return CursorRegion(
+      label: 'open',
+      onTap: widget.onTap,
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _hover = true),
+        onExit: (_) => setState(() => _hover = false),
+        child: AnimatedContainer(
+          duration: AppMotion.fast,
+          curve: AppMotion.soft,
+          padding: const EdgeInsets.fromLTRB(14, 8, 10, 8),
+          decoration: BoxDecoration(
+            color: _hover ? AppColors.accent : Colors.transparent,
+            borderRadius: BorderRadius.circular(100),
+            border: Border.all(color: AppColors.accent),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Resume',
+                style: AppText.sans(
+                  size: 13,
+                  weight: FontWeight.w600,
+                  color: _hover ? AppColors.background : AppColors.ink,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Icon(
+                Icons.north_east,
+                size: 13,
+                color: _hover ? AppColors.background : AppColors.accent,
+              ),
+            ],
+          ),
         ),
       ),
     );

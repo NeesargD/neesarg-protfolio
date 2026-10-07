@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../core/data/resume_data.dart';
 import '../core/theme/app_motion.dart';
 import '../core/utils/motion_prefs.dart';
 import '../core/utils/responsive.dart';
@@ -49,6 +51,11 @@ class _HomeScreenState extends State<HomeScreen> {
     _scroll.value = _scrollController.offset;
     final scrolled = _scrollController.offset > 40;
     if (scrolled != _scrolled) setState(() => _scrolled = scrolled);
+  }
+
+  Future<void> _openResume() async {
+    final uri = Uri.base.resolve(ResumeData.resumeFile);
+    await launchUrl(uri, webOnlyWindowName: '_blank');
   }
 
   Future<void> _scrollTo(GlobalKey key) async {
@@ -125,6 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
             scrolled: _scrolled,
             entries: entries,
             onLogoTap: () => _scrollTo(_topKey),
+            onResume: _openResume,
           ),
         ),
         if (showLoader)

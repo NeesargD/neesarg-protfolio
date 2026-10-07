@@ -9,8 +9,8 @@ import '../core/utils/responsive.dart';
 import '../widgets/aurora_background.dart';
 import '../widgets/cursor/parallax.dart';
 import '../widgets/marquee.dart';
+import '../widgets/phone_3d.dart';
 import '../widgets/rising_text.dart';
-import '../widgets/wireframe_phone.dart';
 
 /// A fixed hero the "camera" flies into: as the page scrolls through its first
 /// viewport, the whole hero scales up toward the wireframe phone and fades,
@@ -38,17 +38,18 @@ class HeroZoomOverlay extends StatelessWidget {
           final p = (offset / viewportH).clamp(0.0, 1.0);
           // Fully gone — don't build the hero (frees its tickers).
           if (p >= 1.0) return const SizedBox.shrink();
-          // Ease-in so the fly-in accelerates (feels like diving into it).
-          final e = p * p;
-          final scale = 1 + e * 6.5;
-          // Hold, then dissolve over the last ~40% to reveal the content.
-          final fade = (1 - ((p - 0.6) / 0.4)).clamp(0.0, 1.0);
+          // Backdrop (name + aurora) fades early so the phone becomes the
+          // focus; the whole layer dissolves at the very end to hand off to
+          // the real content beneath.
+          final bgFade = (1 - (p / 0.32)).clamp(0.0, 1.0);
+          final overlayFade = (1 - ((p - 0.82) / 0.18)).clamp(0.0, 1.0);
           return Opacity(
-            opacity: fade,
-            child: Transform.scale(
-              scale: scale,
-              alignment: Alignment.center,
-              child: HeroSection(play: play),
+            opacity: overlayFade,
+            child: Stack(
+              children: [
+                Opacity(opacity: bgFade, child: HeroSection(play: play)),
+                Positioned.fill(child: Phone3D(progress: p)),
+              ],
             ),
           );
         },
@@ -76,9 +77,6 @@ class HeroSection extends StatelessWidget {
     final displaySize =
         (size.width * (isMobile ? 0.18 : 0.14)).clamp(44.0, 200.0);
 
-    // Centred phone is the focal point the camera flies into on scroll.
-    final objSize = isMobile ? size.width * 1.02 : size.height * 0.98;
-
     return SizedBox(
       height: size.height,
       child: Stack(
@@ -86,44 +84,68 @@ class HeroSection extends StatelessWidget {
           const Positioned.fill(
             child: Parallax(strength: 46, child: AuroraBackground()),
           ),
-          Positioned(
-            left: (size.width - objSize) / 2,
-            top: (size.height - objSize) / 2,
-            width: objSize,
-            height: objSize,
-            child: const Parallax(strength: 20, child: WireframePhone()),
-          ),
           Positioned.fill(
             child: Padding(
               padding: EdgeInsets.fromLTRB(gutter, 100, gutter, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Spacer(flex: 2),
-                  _Eyebrow(play: play),
-                  const SizedBox(height: 20),
-                  Parallax(
-                    strength: 15,
-                    child: RisingLines(
-                      play: play,
-                      startDelay: const Duration(milliseconds: 150),
-                      lines: const [
-                        ResumeData.heroLineOne,
-                        ResumeData.heroLineTwo,
-                        ResumeData.heroLineThree,
+              child: isMobile
+                  // Mobile: the phone (overlay) sits up top; the headline sits
+                  // BELOW it. No overlap, phone is the star.
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 6),
+                        _Eyebrow(play: play),
+                        // The phone (overlay) floats in this gap, between the
+                        // eyebrow above and the headline below.
+                        const Spacer(),
+                        Parallax(
+                          strength: 10,
+                          child: RisingLines(
+                            play: play,
+                            startDelay: const Duration(milliseconds: 150),
+                            lines: const [
+                              ResumeData.heroLineOne,
+                              ResumeData.heroLineTwo,
+                              ResumeData.heroLineThree,
+                            ],
+                            style: AppText.display(
+                              size: displaySize,
+                              weight: FontWeight.w600,
+                              letterSpacing: -displaySize * 0.02,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 70),
                       ],
-                      style: AppText.display(
-                        size: displaySize,
-                        weight: FontWeight.w600,
-                        letterSpacing: -displaySize * 0.02,
-                      ),
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Spacer(flex: 2),
+                        _Eyebrow(play: play),
+                        const SizedBox(height: 20),
+                        Parallax(
+                          strength: 15,
+                          child: RisingLines(
+                            play: play,
+                            startDelay: const Duration(milliseconds: 150),
+                            lines: const [
+                              ResumeData.heroLineOne,
+                              ResumeData.heroLineTwo,
+                              ResumeData.heroLineThree,
+                            ],
+                            style: AppText.display(
+                              size: displaySize,
+                              weight: FontWeight.w600,
+                              letterSpacing: -displaySize * 0.02,
+                            ),
+                          ),
+                        ),
+                        const Spacer(flex: 1),
+                        _IntroRow(play: play, isMobile: isMobile),
+                        const Spacer(flex: 1),
+                      ],
                     ),
-                  ),
-                  const Spacer(flex: 1),
-                  _IntroRow(play: play, isMobile: isMobile),
-                  const Spacer(flex: 1),
-                ],
-              ),
             ),
           ),
           Positioned(
@@ -285,35 +307,40 @@ class _BottomMarquee extends StatelessWidget {
       children: [
         Divider(color: AppColors.line, height: 1),
         const SizedBox(height: 18),
-        Marquee(
-          velocity: 40,
-          spacing: 44,
-          children: [
-            for (final s in ResumeData.skillMarquee)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    s,
-                    style: AppText.display(
-                      size: 20,
-                      weight: FontWeight.w500,
-                      letterSpacing: 0,
-                      style: FontStyle.italic,
+        // Bounded height — the marquee's OverflowBox needs a finite height
+        // constraint (the parent Positioned gives it unbounded height).
+        SizedBox(
+          height: 30,
+          child: Marquee(
+            velocity: 40,
+            spacing: 44,
+            children: [
+              for (final s in ResumeData.skillMarquee)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      s,
+                      style: AppText.display(
+                        size: 20,
+                        weight: FontWeight.w500,
+                        letterSpacing: 0,
+                        style: FontStyle.italic,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 44),
-                  Container(
-                    width: 6,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: AppColors.accent,
-                      shape: BoxShape.circle,
+                    const SizedBox(width: 44),
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: AppColors.accent,
+                        shape: BoxShape.circle,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-          ],
+                  ],
+                ),
+            ],
+          ),
         ),
       ],
     ).animate(target: play ? 1 : 0).fadeIn(duration: 800.ms, delay: 900.ms);

@@ -22,6 +22,13 @@ class ContactSection extends StatelessWidget {
     }
   }
 
+  Future<void> _openResume() async {
+    await launchUrl(
+      Uri.base.resolve(ResumeData.resumeFile),
+      webOnlyWindowName: '_blank',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     context.watchTheme();
@@ -63,13 +70,32 @@ class ContactSection extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(height: 26),
+          Reveal(
+            delay: const Duration(milliseconds: 180),
+            child: CursorRegion(
+              label: 'open',
+              onTap: _openResume,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Or view my resume',
+                    style: AppText.sans(
+                      size: 15,
+                      weight: FontWeight.w500,
+                      color: AppColors.muted,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(Icons.north_east, size: 15, color: AppColors.accent),
+                ],
+              ),
+            ),
+          ),
           SizedBox(height: isMobile ? 80 : 140),
           Reveal(
-            child: _ContactMeta(
-              contact: c,
-              isMobile: isMobile,
-              onOpen: _open,
-            ),
+            child: _ContactMeta(contact: c, isMobile: isMobile, onOpen: _open),
           ),
           const SizedBox(height: 72),
           Divider(color: AppColors.line, height: 1),
@@ -182,10 +208,7 @@ class _ContactMeta extends StatelessWidget {
         value: 'in/neesarg-darji',
         onTap: () => onOpen(contact.linkedIn),
       ),
-      _MetaColumn(
-        label: 'LOCATION',
-        value: contact.location,
-      ),
+      _MetaColumn(label: 'LOCATION', value: contact.location),
     ];
 
     if (isMobile) {
@@ -193,10 +216,7 @@ class _ContactMeta extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           for (final c in columns)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 28),
-              child: c,
-            ),
+            Padding(padding: const EdgeInsets.only(bottom: 28), child: c),
         ],
       );
     }
@@ -291,7 +311,11 @@ class _FooterBar extends StatelessWidget {
     }
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [Flexible(child: edu), const SizedBox(width: 24), credit],
+      children: [
+        Flexible(child: edu),
+        const SizedBox(width: 24),
+        credit,
+      ],
     );
   }
 }
