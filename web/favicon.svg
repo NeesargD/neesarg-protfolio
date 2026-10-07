@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>
+    /* Light mode: blue-green. Dark mode: orange (brand accent). */
+    .nd { fill: #0D9488; }
+    @media (prefers-color-scheme: dark) {
+      .nd { fill: #FF5A1F; }
+    }
+    text {
+      font-family: ui-monospace, "SF Mono", "Menlo", monospace;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+  </style>
+  <text class="nd" x="32" y="45" text-anchor="middle" font-size="33">ND</text>
+</svg>
